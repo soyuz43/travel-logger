@@ -6,4 +6,7 @@ public class User
     public string Email { get; set; }
     public string Description { get; set; }
     public string PhotoUrl { get; set; }
+    public Log? Log { get; set; }
+    public List<UpVote>? UpVote { get; set; }
+    
 }

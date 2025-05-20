@@ -8,4 +8,5 @@ public class Log
     public int UserId { get; set; }
     public int CityId { get; set; }
     public DateTime CreatedAt { get; set; }
+    // public Recommendation Recommendation { get; set; }
 }

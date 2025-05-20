@@ -9,6 +9,6 @@ public class LogDTO
     public List<UserDTO> User { get; set; }
     public int CityId { get; set; }
     public List<CitiesDTO> Cities { get; set; }
-
     public DateTime CreatedAt { get; set; }
+    public Recommendation Recommendation { get; set; }
 }
