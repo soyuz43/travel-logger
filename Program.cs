@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using TravelLogger.Models;
+using TravelLogger.Models.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
