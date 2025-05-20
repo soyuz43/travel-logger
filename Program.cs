@@ -34,7 +34,55 @@ app.UseCors(options =>
     options.AllowAnyHeader();
 });
 
-// Add all endpoints here
+
+app.MapPost("/api/logs", (TravelLoggerDbContext db, LogDTO logs) =>
+{
+    Log l = new Log
+    {
+        Id = logs.Id,
+        Title = logs.Title,
+        Comment = logs.Comment,
+        UserId = logs.UserId,
+        CityId = logs.CityId,
+        CreatedAt = logs.CreatedAt,
+    };
+    db.Log.Add(l);
+    db.SaveChanges();
+    return Results.Created($"/api/logs/{l.Id}", l);
+});
+
+app.MapPatch("/api/logs/{id}", (TravelLoggerDbContext db, int id, string? Title, string? Comment, int? UserId, int? CityId) =>
+{
+    Log l = db.Log.FirstOrDefault(l => l.Id == id);
+    if (l != null)
+    {
+        l.Title = Title ?? l.Title;
+        l.Comment = Comment ?? l.Comment;
+        l.UserId = UserId ?? l.UserId;
+        l.CityId = CityId ?? l.CityId;
+        db.SaveChanges();
+        return Results.NoContent();
+    };
+        return Results.NoContent();
+});
+app.MapDelete("/api/logs/{id}", (TravelLoggerDbContext db, int id) =>
+{
+    Log l = db.Log.FirstOrDefault(l => l.Id == id);
+    if (l == null) return Results.NotFound();
+    db.Log.Remove(l);
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+app.MapGet("/api/users/{userid}/logs", (TravelLoggerDbContext db, int userid) =>
+{
+    return db.Log.Include(u => u.User).Include(c => c.City).Where(l => l.UserId == userid).ToList();
+});
+
+app.MapGet("/api/cities/{cityId}/logs", (TravelLoggerDbContext db, int cityId) =>
+{
+    return db.Log.Include(u => u.User).Include(c => c.City).Where(l => l.CityId == cityId).ToList();
+});
 
 
 app.Run();
