@@ -6,6 +6,6 @@ public class RecommendationDTO
     public string Place { get; set; }
     public int CitiesId { get; set; }
     public int UpVoteId { get; set; }
-    public UpVoteDTO UpVote { get; set; }
-    public CitiesDTO Cities { get; set; }
+    public List<UpVoteDTO>? UpVote { get; set; }
+    public CitiesDTO? Cities { get; set; }
 }

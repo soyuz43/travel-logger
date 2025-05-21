@@ -24,11 +24,11 @@ public class TravelLoggerDbContext : DbContext
         });
         modelBuilder.Entity<Recommendation>().HasData(new Recommendation[]
         {
-            new Recommendation { Id = 1, Place = "Central Park", CitiesId = 1 },
-            new Recommendation { Id = 2, Place = "Times Square", CitiesId = 1 },
-            new Recommendation { Id = 3, Place = "London Eye", CitiesId = 2 },
-            new Recommendation { Id = 4, Place = "Shibuya Crossing",  CitiesId = 3 },
-            new Recommendation { Id = 5, Place = "Tokyo Tower", CitiesId = 3 }
+            new Recommendation { Id = 1, Place = "Central Park", CitiesId = 1, UpVoteId = 4},
+            new Recommendation { Id = 2, Place = "Times Square", CitiesId = 1, UpVoteId = 2},
+            new Recommendation { Id = 3, Place = "London Eye", CitiesId = 2, UpVoteId = 3},
+            new Recommendation { Id = 4, Place = "Shibuya Crossing",  CitiesId = 3, UpVoteId = 2},
+            new Recommendation { Id = 5, Place = "Tokyo Tower", CitiesId = 3, UpVoteId = 1}
         });
 
         modelBuilder.Entity<UpVote>().HasData(new UpVote[]
