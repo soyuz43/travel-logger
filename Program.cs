@@ -84,4 +84,59 @@ app.MapGet("/api/cities/{cityId}/logs", (TravelLoggerDbContext db, int cityId) =
     return db.Log.Include(u => u.User).Include(c => c.City).Where(l => l.CityId == cityId).ToList();
 });
 
+app.MapGet("/api/cities", (TravelLoggerDbContext db) =>
+{
+    return db.Cities.ToList();
+});
+app.MapGet("/api/cities/{id}", async (TravelLoggerDbContext db, int id) =>
+{
+    Cities city = await db.Cities
+        .Include(c => c.Log)
+        .ThenInclude(c => c.User)
+        .Include(c => c.Recommendations)
+        .ThenInclude(r => r.UpVote)
+        .FirstOrDefaultAsync(city => city.Id == id);
+
+    if (city == null)
+    {
+        return Results.NotFound();
+    }
+
+    CitiesDTO c = new CitiesDTO
+    {
+        Id = city.Id,
+        Name = city.Name,
+        Recommendations = city.Recommendations.Select(r => new RecommendationDTO
+        {
+            Id = r.Id,
+            Place = r.Place,
+            CitiesId = r.CitiesId,
+            UpVoteId = r.UpVoteId,
+            UpVote = r.UpVote.Select(u => new UpVoteDTO
+            {
+                Id = u.Id,
+                UserId = u.UserId,
+                RecommendationId = u.RecommendationId
+            }).ToList(),
+        }).ToList(),
+        Log = city.Log.Select(l => new LogDTO
+        {
+            Id = l.Id,
+            Title = l.Title,
+            Comment = l.Comment,
+            CityId = l.CityId,
+            UserId = l.UserId,
+            User = new UserDTO
+            {
+                Id = l.User.Id,
+                Description = l.User.Description,
+                Email = l.User.Email,
+                PhotoUrl = l.User.PhotoUrl
+            }
+        }).ToList()
+    };
+
+    return Results.Ok(c);
+});
+
 app.Run();
