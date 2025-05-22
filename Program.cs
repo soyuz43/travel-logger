@@ -7,7 +7,7 @@ using TravelLogger.Models.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers() 
+builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -220,14 +220,14 @@ app.MapGet("/api/users/{id}", (TravelLoggerDbContext db, int id) =>
     if (u == null)
     {
         return Results.NotFound();
-    }
-    return Results.Ok(new UserDTO
-    {
-        Id = u.Id,
-        Email = u.Email,
-        Description = u.Description,
-        PhotoUrl = u.PhotoUrl,
-        Log = new LogDTO
+    } else {
+        UserDTO userDTO  = new UserDTO
+        {
+            Id = u.Id,
+            Email = u.Email,
+            Description = u.Description,
+            PhotoUrl = u.PhotoUrl,
+            Log = u.Log == null ? null : new LogDTO
         {
             Id = u.Log.Id,
             Title = u.Log.Title,
@@ -235,21 +235,22 @@ app.MapGet("/api/users/{id}", (TravelLoggerDbContext db, int id) =>
             UserId = u.Log.UserId,
             CityId = u.Log.CityId
         },
-        UpVote = u.UpVote.Select(u => new UpVoteDTO
-        {
-            Id = u.Id,
-            UserId = u.UserId,
-            RecommendationId = u.RecommendationId,
-            Recommendation = new RecommendationDTO
-            {
-                Id = u.Recommendation.Id,
-                Place = u.Recommendation.Place,
-                CitiesId = u.Recommendation.CitiesId,
-                UpVoteId = u.Recommendation.UpVoteId
-            }
-        }).ToList()
-    });
-
+        UpVote = u.UpVote?.Select(upvote => new UpVoteDTO
+                {
+                    Id = upvote.Id,
+                    UserId = upvote.UserId,
+                    RecommendationId = upvote.RecommendationId,
+                    Recommendation = upvote.Recommendation == null ? null : new RecommendationDTO
+                    {
+                        Id = upvote.Recommendation.Id,
+                        Place = upvote.Recommendation.Place,
+                        CitiesId = upvote.Recommendation.CitiesId,
+                        UpVoteId = upvote.Recommendation.UpVoteId
+                    }
+                }).ToList()
+    };
+    return Results.Ok(userDTO);
+    }
 });
 app.MapPut("/api/users/{id}", (TravelLoggerDbContext db, int id, User user) =>
 {
