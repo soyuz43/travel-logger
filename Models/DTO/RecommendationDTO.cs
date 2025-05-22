@@ -8,4 +8,5 @@ public class RecommendationDTO
     public int UpVoteId { get; set; }
     public List<UpVoteDTO>? UpVote { get; set; }
     public CitiesDTO? Cities { get; set; }
+    
 }

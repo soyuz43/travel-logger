@@ -400,3 +400,5 @@ FodyWeavers.xsd
 
 # Migrations
 Migrations/
+#Ignoring password sql
+appsettings.Development.json

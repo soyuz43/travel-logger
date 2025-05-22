@@ -10,4 +10,5 @@ public class Log
     public int CityId { get; set; }
     public Cities? City { get; set; }
     public DateTime CreatedAt { get; set; }
+    // public Recommendation Recommendation { get; set; }
 }
