@@ -7,6 +7,7 @@ public class User
     public string Description { get; set; }
     public string PhotoUrl { get; set; }
     public Log? Log { get; set; }
+    public Cities? City { get; set; }
     public List<UpVote>? UpVote { get; set; }
     
 }

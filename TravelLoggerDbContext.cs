@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TravelLogger.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 public class TravelLoggerDbContext : DbContext
 {
@@ -14,6 +15,10 @@ public class TravelLoggerDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Recommendation>()
+        .Ignore(r => r.Log);
+
+
         modelBuilder.Entity<Cities>().HasData(new Cities[]
         {
             new Cities { Id = 1, Name = "New York" },
@@ -53,4 +58,11 @@ public class TravelLoggerDbContext : DbContext
             new User{ Id = 3, Email = "carol@example.com", Description = "History buff and architecture enthusiast.", PhotoUrl = "https://example.com/photos/carol.jpg"}
         });
     }
+    
+     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // This line tells EF Core to not automatically create indexes
+        configurationBuilder.Conventions.Remove(typeof(ForeignKeyIndexConvention));
+    }
+
 }

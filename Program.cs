@@ -4,12 +4,20 @@ using Microsoft.AspNetCore.Http.Json;
 using TravelLogger.Models;
 using TravelLogger.Models.DTO;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers() 
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 builder.Services.AddCors();
 
@@ -76,12 +84,40 @@ app.MapDelete("/api/logs/{id}", (TravelLoggerDbContext db, int id) =>
 
 app.MapGet("/api/users/{userid}/logs", (TravelLoggerDbContext db, int userid) =>
 {
-    return db.Log.Include(u => u.User).Include(c => c.City).Where(l => l.UserId == userid).ToList();
+     List<LogDTO> result = db.Log
+    .Include(u => u.User)
+    .Include(c => c.City)
+    .Where(l => l.UserId == userid)
+    .Select(l => new LogDTO
+    {
+        Id = l.Id,
+        Title = l.Title,
+        Comment = l.Comment,
+        UserId = l.UserId,
+        CityId = l.CityId,
+        CreatedAt = l.CreatedAt
+    })
+    .ToList();
+    return result;
 });
 
 app.MapGet("/api/cities/{cityId}/logs", (TravelLoggerDbContext db, int cityId) =>
 {
-    return db.Log.Include(u => u.User).Include(c => c.City).Where(l => l.CityId == cityId).ToList();
+    List<LogDTO> result = db.Log
+    .Include(u => u.User)
+    .Include(c => c.City)
+    .Where(l => l.CityId == cityId)
+    .Select(l => new LogDTO
+    {
+        Id = l.Id,
+        Title = l.Title,
+        Comment = l.Comment,
+        UserId = l.UserId,
+        CityId = l.CityId,
+        CreatedAt = l.CreatedAt
+    })
+    .ToList();
+    return result;
 });
 
 app.MapGet("/api/cities", (TravelLoggerDbContext db) =>
@@ -138,5 +174,125 @@ app.MapGet("/api/cities/{id}", async (TravelLoggerDbContext db, int id) =>
 
     return Results.Ok(c);
 });
+
+app.MapPost("/api/users", (TravelLoggerDbContext db, User newUser) =>
+{
+    try
+    {
+        db.User.Add(newUser);
+        db.SaveChanges();
+        return Results.Created($"/api/users/{newUser.Id}", newUser);
+    }
+
+    catch (DbUpdateException)
+    {
+        return Results.BadRequest("Invaild data submitted");
+    }
+});
+
+app.MapGet("/api/users/signin/{email}", (TravelLoggerDbContext db, string email) =>
+{
+    var user = db.User.SingleOrDefault(u => u.Email == email);
+
+    if (user == null)
+    {
+        return Results.NotFound($"User not found.");
+    }
+
+    var userDTO = new UserDTO
+    {
+        Id = user.Id,
+        Email = user.Email,
+        Description = user.Description,
+        PhotoUrl = user.PhotoUrl
+    };
+
+    return Results.Ok(userDTO);
+});
+
+app.MapGet("/api/users/{id}", (TravelLoggerDbContext db, int id) =>
+{
+    User u = db.User
+              .Include(u => u.Log)
+              .Include(u => u.UpVote)
+              .ThenInclude(u => u.Recommendation)
+              .SingleOrDefault(u => u.Id == id);
+    if (u == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(new UserDTO
+    {
+        Id = u.Id,
+        Email = u.Email,
+        Description = u.Description,
+        PhotoUrl = u.PhotoUrl,
+        Log = new LogDTO
+        {
+            Id = u.Log.Id,
+            Title = u.Log.Title,
+            Comment = u.Log.Comment,
+            UserId = u.Log.UserId,
+            CityId = u.Log.CityId
+        },
+        UpVote = u.UpVote.Select(u => new UpVoteDTO
+        {
+            Id = u.Id,
+            UserId = u.UserId,
+            RecommendationId = u.RecommendationId,
+            Recommendation = new RecommendationDTO
+            {
+                Id = u.Recommendation.Id,
+                Place = u.Recommendation.Place,
+                CitiesId = u.Recommendation.CitiesId,
+                UpVoteId = u.Recommendation.UpVoteId
+            }
+        }).ToList()
+    });
+
+});
+app.MapPut("/api/users/{id}", (TravelLoggerDbContext db, int id, User user) =>
+{
+    User userToUpdate = db.User.SingleOrDefault(user => user.Id == id);
+    if (userToUpdate == null)
+    {
+        return Results.NotFound();
+    }
+    userToUpdate.Email = user.Email;
+    userToUpdate.Description = user.Description;
+    userToUpdate.PhotoUrl = user.PhotoUrl;
+
+    db.SaveChanges();
+    return Results.NoContent();
+});
+
+app.MapGet("/api/cities/{cityId}/users", (TravelLoggerDbContext db, int cityId) =>
+{
+    List<UserDTO> result = db.User
+    .Include(c => c.City)
+    .Include(u => u.Log)
+    .Where(u => u.Log != null && db.Log.Where(l => l.UserId == u.Id)
+    .OrderByDescending(l => l.CreatedAt)
+    .FirstOrDefault().CityId == cityId)
+    .Select(u => new UserDTO
+    {
+        Id = u.Id,
+        Email = u.Email,
+        Description = u.Description,
+        PhotoUrl = u.PhotoUrl,
+        Log = new LogDTO
+        {
+            Id = u.Log.Id,
+            Title = u.Log.Title,
+            Comment = u.Log.Comment,
+            UserId = u.Log.UserId,
+            CityId = u.Log.CityId,
+            CreatedAt = u.Log.CreatedAt
+        }
+    })
+    .ToList();
+    return result;
+});
+
 
 app.Run();

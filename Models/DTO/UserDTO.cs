@@ -7,7 +7,7 @@ public class UserDTO
     public string Description { get; set; }
     public string PhotoUrl { get; set; }
     public LogDTO Log { get; set; }
-    
+    public CitiesDTO? City { get; set; }
     public List<UpVoteDTO>? UpVote { get; set; }
 
 }
