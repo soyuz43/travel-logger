@@ -295,5 +295,41 @@ app.MapGet("/api/cities/{cityId}/users", (TravelLoggerDbContext db, int cityId) 
     return result;
 });
 
+// ! Upvote Endpoints
+
+// POST /api/upvotes - Add an upvote
+app.MapPost("/api/upvotes", (TravelLoggerDbContext db, CreateUpVoteDTO dto) =>
+{
+    bool exists = db.UpVote.Any(u =>
+        u.UserId == dto.UserId && u.RecommendationId == dto.RecommendationId);
+
+    if (exists)
+    {
+        return Results.Conflict("User has already upvoted.");
+    }
+
+    var upvote = new UpVote { UserId = dto.UserId, RecommendationId = dto.RecommendationId };
+    db.UpVote.Add(upvote);
+    db.SaveChanges();
+
+    return Results.Created($"/api/upvotes/{upvote.Id}", upvote);
+});
+
+
+// DELETE /api/upvotes/{id} - Remove an upvote
+app.MapDelete("/api/upvotes/{id}", (TravelLoggerDbContext db, int id) =>
+{
+    var upvote = db.UpVote.FirstOrDefault(u => u.Id == id);
+    if (upvote == null)
+    {
+        return Results.NotFound();
+    }
+
+    db.UpVote.Remove(upvote);
+    db.SaveChanges();
+    return Results.Ok();
+});
+
+
 
 app.Run();
